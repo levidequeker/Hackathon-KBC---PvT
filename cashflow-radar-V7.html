@@ -14,10 +14,10 @@
     --muted: #5F6672;
     --line: #E7EAF0;
     --white: #FFFFFF;
-    --past: #1B2A4A;
+    --past: #53acf9;
     --blue: #1E9BF0;
     --blue-tint: #DDF0FD;
-    --indigo: #3B30C4;
+    --indigo: #6bb8f3;
     --indigo-tint: #E4E5FB;
     --orange: #EA7A12;
     --orange-ink: #7A2E00;
@@ -670,7 +670,7 @@ function tip1Info() {
 const TIP_DEFS = [
   { id: 't1', short: 'Voorschot Peeters', title: () => tip1Info().phase1 ? `Tussenfactuur fase 1 aan Peeters` : `Vraag ${Math.round(tip1Info().pct * 100)}% voorschot aan Peeters`,
     text: () => { const t = tip1Info(); return t.phase1
-      ? `${PEETERS.name}: ${eur(PEETERS.materialPaid)} materiaal betaald, ${eur(PEETERS.received)} ontvangen. Stuur een tussenfactuur na fase 1 (${eur(PEETERS.phase1)}).`
+      ? `${PEETERS.name}: ${eur(PEETERS.materialPaid*1.3)} materiaal betaald, ${eur(PEETERS.received)} ontvangen. Stuur een tussenfactuur na fase 1 (${eur(PEETERS.phase1)}).`
       : `${PEETERS.name}: ${eur(PEETERS.materialPaid)} materiaal betaald, ${eur(PEETERS.received)} ontvangen. Stuur een voorschotfactuur van ${Math.round(t.pct * 100)}% (${eur(t.advance)}).`; },
     check: sday => {
       if (PEETERS.value < 5000) return 'Werf onder €5.000.';
