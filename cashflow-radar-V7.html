@@ -1,0 +1,1262 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cashflow-radar V7 · Janssens Bouw</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #6ca2d1;
+    --text: #16213A;
+    --muted: #5F6672;
+    --line: #E7EAF0;
+    --white: #FFFFFF;
+    --past: #1B2A4A;
+    --blue: #1E9BF0;
+    --blue-tint: #DDF0FD;
+    --indigo: #3B30C4;
+    --indigo-tint: #E4E5FB;
+    --orange: #EA7A12;
+    --orange-ink: #7A2E00;
+    --orange-tint: #FFF1E3;
+    --green: #12805C;
+    --green-tint: #E3F5EC;
+    --red: #C0392B;
+    --nav: #1E9BF0;
+    --page: #DCE8F8;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--page); font-family: 'Noto Sans', 'Segoe UI', 'Helvetica Neue', sans-serif; color: var(--text); display: flex; justify-content: center; -webkit-font-smoothing: antialiased; }
+  button, input, textarea { font-family: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2.5px solid var(--indigo); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+  .app { position: relative; width: 100%; max-width: 440px; height: 100%; background: var(--white); display: flex; flex-direction: column; overflow: hidden; }
+  @media (min-width: 520px) {
+    body { align-items: center; padding: 24px; }
+    .app { height: min(900px, calc(100vh - 48px)); border-radius: 28px; box-shadow: 0 30px 60px -30px rgba(20, 40, 90, .35); }
+  }
+  .screen { flex: 1; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; }
+  .hidden { display: none !important; }
+
+  /* ---------- Overzicht ---------- */
+  .top { padding: 30px 22px 6px; display: flex; flex-direction: column; gap: 22px; }
+  .hello { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .hello h1 { margin: 0; font-size: 28px; line-height: 1.15; font-weight: 800; letter-spacing: -0.6px; color: var(--text); }
+  .hello h1 span { color: var(--ink); }
+  .hello p { margin: 6px 0 0; font-size: 14px; color: var(--muted); }
+  .avatar { width: 46px; height: 46px; border-radius: 50%; background: var(--indigo); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 15px; flex-shrink: 0; }
+  .stat { border-radius: 6px; padding: 18px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .stat strong { display: block; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+  .stat span { font-size: 14px; color: #33363D; }
+  .stat .ico { width: 50px; height: 50px; background: #fff; border-radius: 6px; display: grid; place-items: center; color: var(--ink); flex-shrink: 0; }
+  .stat.blue { background: var(--blue-tint); }
+  .stat.lav { background: var(--indigo-tint); }
+  .stats { display: flex; flex-direction: column; gap: 12px; }
+
+  .block { margin: 0 14px 14px; border: 1px solid var(--line); border-radius: 18px; padding: 18px 16px 18px; display: flex; flex-direction: column; gap: 12px; }
+  .top + .block { margin-top: 16px; }
+  .top { background: var(--past); padding-bottom: 78px; }
+  .top .hello h1 { color: #fff; }
+  .top .hello p { color: #B9C7DE; }
+  .top .alert-chip { margin-top: -8px; }
+  .chart-card { position: relative; margin: -64px 14px 18px; background: #fff; border-radius: 28px; padding: 16px 14px 12px; box-shadow: 0 14px 34px -18px rgba(20, 40, 90, .45), 0 0 0 1px rgba(20, 40, 90, .04); display: flex; flex-direction: column; gap: 8px; }
+  .cc-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 0 4px; }
+  .cc-head h2 { margin: 0; font-size: 15px; font-weight: 600; color: var(--muted); }
+  .cc-legend { display: flex; gap: 12px; font-size: 12.5px; color: var(--muted); }
+  .cc-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .lg-solid { width: 16px; height: 3px; border-radius: 2px; background: var(--blue); display: inline-block; }
+  .lg-dash { width: 16px; border-top: 3px dashed var(--indigo); display: inline-block; }
+  .cc-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 0 4px; flex-wrap: wrap; }
+  .cc-foot .seg button { padding: 5px 10px; min-height: 30px; font-size: 12px; }
+  .sec-title { margin: 6px 22px 8px; font-size: 14px; font-weight: 600; color: var(--muted); }
+  .tips-sec { margin: 0 14px 16px; }
+  .tiplist { background: #fff; border-radius: 24px; padding: 6px; box-shadow: 0 10px 28px -20px rgba(20, 40, 90, .4), 0 0 0 1px rgba(20, 40, 90, .05); display: flex; flex-direction: column; gap: 2px; }
+  .tiprow { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1.5px solid transparent; border-radius: 16px; }
+  .tiprow.on { border-color: var(--past); }
+  .tiprow + .tiprow:not(.on) { border-top-color: var(--line); }
+  .tr-main { flex: 1; border: none; background: transparent; padding: 0; text-align: left; display: flex; flex-direction: column; gap: 2px; min-height: 44px; justify-content: center; }
+  .tr-title { font-size: 15px; font-weight: 500; color: var(--past); }
+  .tr-gain { font-size: 14px; font-weight: 600; color: var(--blue); }
+  .switch { width: 52px; height: 30px; border-radius: 15px; border: none; background: #E6EAF0; position: relative; flex-shrink: 0; transition: background .2s; }
+  .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: transform .2s; }
+  .switch[aria-checked="true"] { background: var(--blue); }
+  .switch[aria-checked="true"]::after { transform: translateX(22px); }
+  .tiprow .tipcard { margin-top: 8px; }
+  .tip-more { padding: 0 12px 10px; font-size: 13px; line-height: 1.45; color: #33363D; }
+  .adv-row { background: var(--orange-tint); border-radius: 16px; padding: 12px; margin-top: 4px; font-size: 13.5px; line-height: 1.45; color: #4A2A10; display: flex; flex-direction: column; gap: 8px; }
+  .block-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .block-head h2 { margin: 0; font-size: 17px; font-weight: 700; color: var(--text); }
+  .sub { font-size: 12.5px; color: var(--muted); margin: -6px 0 0; line-height: 1.4; }
+
+  .seg { display: inline-flex; background: #F1F3F7; border-radius: 8px; padding: 3px; }
+  .seg button { border: none; background: transparent; font-size: 13px; font-weight: 500; padding: 7px 12px; border-radius: 6px; color: var(--muted); min-height: 34px; }
+  .seg button[aria-pressed="true"] { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); font-weight: 600; }
+
+  .readout { font-size: 12.5px; color: var(--muted); line-height: 1.4; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+  .readout ul { margin: 0; padding-left: 18px; }
+  .readout li + li { margin-top: 2px; }
+  .readout b { color: var(--text); font-size: 14px; }
+  .readout span { white-space: nowrap; }
+  .chart-wrap svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .chart-wrap [data-pt] { cursor: pointer; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: 12px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { display: inline-flex; align-items: center; width: 18px; position: relative; }
+  .sw::before { content: ''; width: 18px; height: 2.5px; border-radius: 2px; background: currentColor; }
+  .sw::after { content: ''; position: absolute; left: 5px; width: 8px; height: 8px; border-radius: 50%; background: #fff; border: 2px solid currentColor; box-sizing: border-box; }
+  .sw.past { color: var(--past); } .sw.fut { color: var(--blue); }
+  .sw-band { width: 14px; height: 10px; background: var(--blue-tint); border-radius: 2px; }
+  .sw-dash { width: 18px; border-top: 2.5px dashed var(--indigo); }
+  .sw-ghost { width: 18px; border-top: 2px solid #B8C0CC; }
+  .hint { font-size: 12.5px; color: var(--muted); }
+
+  .alert-chip { align-self: flex-start; order: -1; border: none; background: var(--orange-tint); color: var(--orange-ink); font-size: 13px; font-weight: 600; padding: 9px 12px; border-radius: 20px; display: inline-flex; gap: 8px; align-items: center; min-height: 40px; }
+  .alert-chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); }
+  .alert-chip.ok { background: var(--green-tint); color: var(--green); }
+  .alert-chip.ok i { background: var(--green); }
+
+  /* week-detail (verschijnt pas na tik op de grafiek) */
+  .detail { background: #F6F7FA; border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
+  .detail-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .detail-head strong { font-size: 15px; }
+  .x-btn { width: 36px; height: 36px; border: none; background: #fff; border-radius: 50%; display: grid; place-items: center; }
+  .move { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .move:last-child { border-bottom: none; }
+  .move span:last-child { font-weight: 700; white-space: nowrap; }
+  .in { color: var(--green); }
+
+  /* beslissing testen */
+  .decide { border: none; width: 100%; text-align: left; background: linear-gradient(135deg, #1B2A4A, #24407A); color: #fff; border-radius: 14px; padding: 18px; display: flex; gap: 14px; align-items: center; min-height: 84px; }
+  .decide .d-ico { width: 46px; height: 46px; border-radius: 12px; background: rgba(255,255,255,.12); display: grid; place-items: center; flex-shrink: 0; }
+  .decide strong { display: block; font-size: 17px; }
+  .decide span { font-size: 13px; color: #C9D2E3; }
+
+  /* hefbomen */
+  .levers { display: flex; flex-direction: column; }
+  .lever { border-bottom: 1px solid var(--line); padding: 12px 0; display: flex; flex-direction: column; gap: 10px; }
+  .lever-main { border: none; background: transparent; padding: 0; text-align: left; display: flex; gap: 12px; align-items: center; width: 100%; }
+  .l-ico { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; flex-shrink: 0; }
+  .l-text { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+  .l-title { font-size: 15px; font-weight: 600; }
+  .l-sub { font-size: 13px; color: var(--muted); line-height: 1.4; }
+  .l-amt { font-size: 15px; font-weight: 800; color: var(--green); white-space: nowrap; }
+  .lever.selected .l-title { color: var(--indigo); }
+  .l-actions { display: flex; flex-wrap: wrap; gap: 8px; padding-left: 52px; }
+  .note { font-size: 12.5px; line-height: 1.45; color: #4A3A1A; background: #FFF8E8; border-radius: 10px; padding: 10px 12px; margin-left: 52px; }
+  .total { background: var(--green-tint); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+  .total-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .total-row strong { font-size: 26px; font-weight: 800; color: #0B5A40; letter-spacing: -0.5px; }
+  .total p { margin: 0; font-size: 13.5px; line-height: 1.45; color: #0F3F2D; }
+  .applied-tag { font-size: 12px; font-weight: 700; color: var(--green); display: inline-flex; gap: 4px; align-items: center; }
+
+  .btn { border: none; border-radius: 10px; padding: 10px 14px; font-size: 14px; font-weight: 600; min-height: 44px; }
+  .btn.primary { background: var(--indigo); color: #fff; }
+  .btn.ghost { background: #F1F3F7; color: var(--ink); }
+  .btn.dark { background: var(--past); color: #fff; }
+  .foot { font-size: 11.5px; color: var(--muted); padding: 4px 22px 22px; text-align: center; }
+
+  /* ---------- Pop-up (hergebruikt uit V1) ---------- */
+  .scrim { position: absolute; inset: 0; background: rgba(20, 21, 26, .28); z-index: 20; display: flex; align-items: flex-end; opacity: 0; transition: opacity .25s; }
+  .scrim.show { opacity: 1; }
+  .sheet { width: 100%; max-height: 80%; overflow-y: auto; background: var(--white); border-radius: 22px 22px 0 0; padding: 10px 20px 22px; transform: translateY(24px); transition: transform .3s; }
+  .scrim.show .sheet { transform: none; }
+  .grab { width: 40px; height: 4px; border-radius: 2px; background: #D5D9E0; margin: 0 auto 14px; }
+  .warn { background: var(--orange-tint); border-radius: 14px; padding: 16px; display: flex; gap: 12px; }
+  .warn.ok { background: var(--green-tint); }
+  .warn-ico { width: 40px; height: 40px; border-radius: 50%; background: var(--orange); color: #fff; display: grid; place-items: center; flex-shrink: 0; }
+  .warn.ok .warn-ico { background: var(--green); }
+  .warn h3 { margin: 0; font-size: 18px; line-height: 1.25; font-weight: 800; color: var(--orange-ink); }
+  .warn.ok h3 { color: #0B5A40; }
+  .warn p { margin: 4px 0 0; font-size: 13.5px; line-height: 1.45; color: #4A2A10; }
+  .warn.ok p { color: #0F3F2D; }
+  .why-btn { border: none; background: transparent; padding: 12px 2px; font-size: 14px; font-weight: 600; color: var(--indigo); display: inline-flex; align-items: center; gap: 6px; min-height: 44px; }
+  .why { font-size: 13.5px; line-height: 1.5; color: #33363D; background: #F6F7FA; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
+  .why ul { margin: 6px 0 0; padding-left: 18px; } .why li { margin: 3px 0; } .why p { margin: 8px 0 0; }
+  .act { width: 100%; border: 1.5px solid var(--line); background: #fff; border-radius: 14px; padding: 13px 14px; display: flex; align-items: center; gap: 12px; text-align: left; margin-top: 10px; min-height: 64px; transition: border-color .2s, background .2s; }
+  .act[aria-pressed="true"] { border-color: var(--indigo); background: #F4F4FE; }
+  .act .box { width: 24px; height: 24px; border-radius: 7px; border: 2px solid var(--indigo); display: grid; place-items: center; color: #fff; flex-shrink: 0; }
+  .act[aria-pressed="true"] .box { background: var(--indigo); }
+  .act-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  .act-title { font-size: 15px; font-weight: 600; }
+  .act-effect { font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+  .cost { font-size: 12px; font-weight: 600; padding: 4px 9px; border-radius: 6px; white-space: nowrap; }
+  .cost.free { background: var(--green-tint); color: var(--green); }
+  .cost.paid { background: #F1F3F7; color: #33363D; }
+  .sheet-close { width: 100%; margin-top: 16px; }
+
+  /* ---------- Werf-analyse ---------- */
+  .panel { position: absolute; inset: 0; z-index: 30; background: var(--white); display: flex; flex-direction: column; transform: translateX(100%); transition: transform .3s; }
+  .panel.show { transform: none; }
+  .panel-head { padding: 22px 18px 12px; display: flex; gap: 12px; align-items: center; border-bottom: 1px solid var(--line); }
+  .back { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: #fff; display: grid; place-items: center; flex-shrink: 0; }
+  .panel-head h1 { margin: 0; font-size: 21px; font-weight: 800; letter-spacing: -0.3px; }
+  .panel-head p { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+  .panel-body { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 16px; }
+  .facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .fact { background: #F6F7FA; border-radius: 10px; padding: 10px 12px; }
+  .fact b { display: block; font-size: 15px; }
+  .fact span { font-size: 12px; color: var(--muted); }
+  .opt { width: 100%; border: 1.5px solid var(--line); background: #fff; border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 10px; text-align: left; transition: border-color .2s, background .2s; }
+  .opt[aria-pressed="true"] { border-color: var(--indigo); background: #F4F4FE; }
+  .opt-top { display: flex; gap: 12px; align-items: center; }
+  .rank { width: 26px; height: 26px; border-radius: 50%; background: var(--past); color: #fff; font-size: 13px; font-weight: 700; display: grid; place-items: center; flex-shrink: 0; }
+  .opt-title { flex: 1; font-size: 15px; font-weight: 700; }
+  .opt .box { width: 24px; height: 24px; border-radius: 7px; border: 2px solid var(--indigo); display: grid; place-items: center; color: #fff; flex-shrink: 0; }
+  .opt[aria-pressed="true"] .box { background: var(--indigo); }
+  .opt-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding-left: 38px; }
+  .opt-grid div { display: flex; flex-direction: column; gap: 2px; }
+  .opt-grid span { font-size: 11.5px; color: var(--muted); }
+  .opt-grid b { font-size: 13px; font-weight: 600; line-height: 1.3; }
+  .advice { background: var(--past); color: #fff; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .advice h3 { margin: 0; font-size: 16px; }
+  .advice p { margin: 0; font-size: 14px; line-height: 1.5; color: #DCE3F0; }
+  .advice .btn { align-self: flex-start; background: #fff; color: var(--past); }
+
+  /* ---------- Assistent (hergebruikt uit V1) ---------- */
+  .chat { display: flex; flex-direction: column; height: 100%; }
+  .chat-head { padding: 30px 22px 14px; border-bottom: 1px solid var(--line); }
+  .chat-head h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.4px; }
+  .chat-head p { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+  .msgs { flex: 1; overflow-y: auto; padding: 18px 18px 8px; display: flex; flex-direction: column; gap: 12px; }
+  .msg { max-width: 88%; font-size: 14.5px; line-height: 1.5; padding: 12px 14px; border-radius: 16px; }
+  .msg.user { align-self: flex-end; background: var(--indigo); color: #fff; border-bottom-right-radius: 4px; }
+  .msg.bot { align-self: flex-start; color: var(--text); background: #F3F5F8; border-bottom-left-radius: 4px; }
+  .msg.bot p { margin: 0 0 8px; } .msg.bot p:last-child { margin-bottom: 0; }
+  .verdict { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 6px; }
+  .verdict i { width: 10px; height: 10px; border-radius: 50%; }
+  .mini { background: #fff; border-radius: 10px; padding: 8px; margin: 8px 0; }
+  .assume { font-size: 12px; color: var(--muted); }
+  .chips { display: flex; gap: 8px; overflow-x: auto; padding: 4px 18px 10px; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex-shrink: 0; border: 1px solid var(--line); background: #fff; border-radius: 18px; padding: 9px 13px; font-size: 13px; font-weight: 500; min-height: 40px; }
+  .composer { display: flex; gap: 8px; padding: 8px 14px 12px; border-top: 1px solid var(--line); align-items: flex-end; }
+  .composer label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .composer textarea { flex: 1; resize: none; border: 1px solid var(--line); border-radius: 14px; padding: 11px 13px; font-size: 15px; line-height: 1.4; max-height: 110px; background: #F8F9FB; }
+  .send { width: 46px; height: 46px; border: none; border-radius: 50%; background: var(--indigo); color: #fff; display: grid; place-items: center; flex-shrink: 0; }
+
+  .nav { background: var(--nav); display: grid; grid-template-columns: 1fr 1fr; padding: 10px 24px calc(14px + env(safe-area-inset-bottom, 0px)); }
+  .nav button { border: none; background: transparent; color: rgba(255,255,255,.8); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; min-height: 52px; justify-content: center; position: relative; }
+  .nav button[aria-current="page"] { color: #fff; font-weight: 800; }
+  .nav button[aria-current="page"]::after { content: ''; position: absolute; bottom: 2px; width: 22px; height: 3px; border-radius: 2px; background: #fff; }
+  .nav :focus-visible { outline-color: #fff; }
+
+  /* ---------- Pushmelding ---------- */
+  .push { position: absolute; top: 10px; left: 10px; right: 10px; z-index: 40; display: flex; gap: 6px; align-items: flex-start; background: rgba(255,255,255,.97); border-radius: 18px; padding: 12px 10px 12px 12px; box-shadow: 0 12px 30px -8px rgba(20,30,60,.35), 0 0 0 1px rgba(20,30,60,.06); transform: translateY(-130%); transition: transform .45s cubic-bezier(.2,.9,.3,1.2); }
+  .push.show { transform: none; }
+  .push-open { flex: 1; border: none; background: transparent; padding: 0; text-align: left; display: flex; gap: 10px; }
+  .push-app { width: 38px; height: 38px; border-radius: 9px; background: var(--blue); color: #fff; display: grid; place-items: center; flex-shrink: 0; }
+  .push-meta { font-size: 11.5px; color: #6B7280; display: flex; justify-content: space-between; }
+  .push-title { font-size: 14px; font-weight: 700; color: #14151A; margin-top: 1px; }
+  .push-text { font-size: 13px; line-height: 1.4; color: #33363D; margin-top: 2px; }
+  .push-x { width: 32px; height: 32px; border: none; background: #F1F3F7; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; color: #33363D; }
+
+  /* ---------- Tips onder de grafiek ---------- */
+  .tipchips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tipchip { border: 1.5px solid var(--line); background: #fff; border-radius: 999px; padding: 7px 12px; font-size: 12.5px; font-weight: 600; color: var(--text); display: inline-flex; gap: 6px; align-items: center; min-height: 38px; }
+  .tipchip small { font-size: 11.5px; font-weight: 700; color: var(--green); }
+  .tipchip[aria-pressed="true"] { border-color: var(--indigo); background: #F4F4FE; }
+  .tipchip.on { border-color: var(--green); background: var(--green-tint); }
+  .tipchip.advisor { border-color: #F3C99B; background: var(--orange-tint); color: var(--orange-ink); }
+  .tipcard { background: #F6F7FA; border-radius: 12px; padding: 12px 14px; font-size: 13.5px; line-height: 1.45; color: #14151A; display: flex; flex-direction: column; gap: 10px; }
+  .tipcard .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tipcard.warnish { background: var(--orange-tint); color: #4A2A10; }
+  .hidden-tips { border: none; background: transparent; padding: 0; font-size: 12px; color: var(--muted); text-decoration: underline; align-self: flex-start; min-height: 32px; }
+  .hidden-list { font-size: 12px; color: var(--muted); margin: 0; padding-left: 18px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="push" id="push" role="status" aria-live="polite" hidden>
+    <button class="push-open" id="push-open">
+      <span class="push-app" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 3 4-7 5 5"/></svg></span>
+      <span style="flex:1"><span class="push-meta"><span>Cashflow-radar</span><span>nu</span></span>
+      <span class="push-title" id="push-title"></span><span class="push-text" id="push-text"></span></span>
+    </button>
+    <button class="push-x" id="push-x" aria-label="Melding sluiten"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+
+  <!-- ================= OVERZICHT ================= -->
+  <main class="screen" id="overview" aria-label="Overzicht">
+    <section class="top">
+      <div class="hello">
+        <div>
+          <h1>Goedemiddag, <span>Dirk</span></h1>
+          <p>Janssens Bouw · maandag 12 oktober</p>
+        </div>
+        <div class="avatar" aria-hidden="true">DJ</div>
+      </div>
+      <button class="alert-chip" id="alert-chip"><i></i><span></span></button>
+    </section>
+
+    <section class="chart-card" id="cashflow-block" aria-labelledby="cf-title">
+      <div class="cc-head">
+        <h2 id="cf-title">Saldo per week</h2>
+        <div class="cc-legend"><span><i class="lg-solid"></i>verwacht</span><span id="legend-dash" class="hidden"><i class="lg-dash"></i>met keuze</span></div>
+      </div>
+      <div class="chart-wrap" id="chart"></div>
+      <div class="cc-foot">
+        <div class="readout" id="readout" aria-live="polite"></div>
+
+      </div>
+      <div class="detail hidden" id="detail"></div>
+    </section>
+
+    <h2 class="sec-title">Top 3 tips</h2>
+    <section class="tips-sec" aria-label="Tips">
+      <div class="tiplist" id="tipchips"></div>
+      <button class="hidden-tips hidden" id="hidden-btn" aria-expanded="false" style="margin:6px 8px 0"></button>
+      <ul class="hidden-list hidden" id="hidden-list" style="margin:0 8px"></ul>
+    </section>
+
+    <section class="block" aria-labelledby="decide-title">
+      <div class="block-head"><h2 id="decide-title">Test een beslissing</h2></div>
+      <button class="decide" data-open-project="1">
+        <span class="d-ico" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg></span>
+        <span><strong>Kan ik deze werf aan?</strong><span>€1,5M · 10 maanden · start april</span></span>
+      </button>
+    </section>
+
+    <section class="block" aria-labelledby="lev-title">
+      <div class="block-head"><h2 id="lev-title">Cash die vastzit in je werking</h2></div>
+      <p class="sub">Tik om het effect te zien</p>
+      <div class="levers" id="levers"></div>
+      <div class="total" id="total"></div>
+    </section>
+    <p class="foot">Demodata · aannames illustratief</p>
+  </main>
+
+  <!-- ================= ASSISTENT ================= -->
+  <main class="screen hidden" id="assistant" aria-label="Assistent">
+    <div class="chat">
+      <div class="chat-head">
+        <h1>Assistent</h1>
+        <p>Test een beslissing vóór je ze neemt</p>
+      </div>
+      <div class="msgs" id="msgs" aria-live="polite"></div>
+      <div class="chips" id="chips"></div>
+      <form class="composer" id="composer" autocomplete="off">
+        <label for="q">Stel een vraag</label>
+        <textarea id="q" rows="1" maxlength="300" placeholder="Kan ik een werf van 2 miljoen aan?"></textarea>
+        <button class="send" type="submit" aria-label="Verstuur vraag"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>
+      </form>
+    </div>
+  </main>
+
+  <nav class="nav" aria-label="Hoofdmenu">
+    <button data-nav="overview" aria-current="page"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 3 4-7 5 5"/><path d="M3 21h18"/></svg>Overzicht</button>
+    <button data-nav="assistant"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5"/></svg>Assistent</button>
+  </nav>
+
+  <!-- ================= POP-UP ================= -->
+  <div class="scrim hidden" id="scrim">
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="warn-title">
+      <div class="grab" aria-hidden="true"></div>
+      <div class="warn" id="warn"><div class="warn-ico" aria-hidden="true" id="warn-ico"></div><div><h3 id="warn-title"></h3><p id="warn-sub"></p></div></div>
+      <button class="why-btn" id="why-btn" aria-expanded="false" aria-controls="why">Waarom?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></button>
+      <div class="why hidden" id="why"></div>
+      <div id="acts"></div>
+      <div id="sheet-advisor"></div>
+      <button class="btn ghost sheet-close" id="sheet-close">Sluiten</button>
+    </div>
+  </div>
+
+  <!-- ================= WERF-ANALYSE ================= -->
+  <section class="panel hidden" id="panel" role="dialog" aria-modal="true" aria-labelledby="p-title">
+    <div class="panel-head">
+      <button class="back" id="panel-back" aria-label="Terug"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div><h1 id="p-title">Kan ik deze werf aan?</h1><p id="p-sub"></p></div>
+    </div>
+    <div class="panel-body" id="panel-body"></div>
+  </section>
+</div>
+
+<script>
+'use strict';
+/* =====================================================================
+   1. BEDRIJFSPROFIEL (demodata, afgestemd op de pitch)
+   Bouwfirma: €10M omzet, 5% nettomarge (€500k), 25 man, geen CFO.
+   Eén dag omzet ≈ €27k. Alle aannames zijn illustratief.
+   ===================================================================== */
+const TODAY = new Date(2026, 9, 12);          // maandag 12 oktober 2026
+const HORIZON = 91;                            // 13 weken vooruit
+const HISTORY_WEEKS = 8;
+const RUNS = 1000;
+const PRE = 110;                               // aanloop: werk van vóór vandaag dat nog betaald wordt
+const CREDIT_LINE = 400000;
+const CREDIT_RATE = 0.07;
+const DAY_REVENUE = 27000;                     // €10M / 365
+const YEAR_PROFIT = 500000;
+
+const PROFILE = {
+  start: 140000,
+  workPerWorkday: 38400,        // uitgevoerd werk per werkdag (±€10M/jaar)
+  billLag: 12,                  // dagen tussen werk en vorderingsstaat
+  payTerm: 30,                  // betaaltermijn klanten
+  normalLate: 8,                // gewone klanten: gemiddeld 8 dagen te laat
+  latePayerShare: 0.30,         // twee laatbetalers = 30% van de omzet
+  latePayerExtra: 22,           // zij betalen gemiddeld 22 dagen te laat
+  purchasesPerWorkday: 23000,   // ±€6M aankopen per jaar
+  dpo: 35,                      // leveranciers betaald na 35 dagen (sector: 40)
+  overheadPerWorkday: 6100,
+  wages: 110000,                // netto lonen, laatste werkdag van de maand
+  rsz: 45000,                   // op de 5de
+  vat: 70000,                   // btw op de 20ste
+  prepaidTax: [{ date: new Date(2026, 11, 20), amount: 60000 }], // voorafbetaling belastingen
+};
+const LATE_PAYERS = ['Immo Scheldeland', 'Projectbouw Van Poucke'];
+
+/* De drie hefbomen: "cash die vastzit in je eigen werking" */
+const LEVERS = [
+  { id: 'bill', title: 'Vorderingsstaten sneller factureren', assumption: '8 dagen sneller', freed: 8 * DAY_REVENUE, shown: '±€220k',
+    detail: 'Staten 8 dagen sneller verstuurd, geld 8 dagen sneller binnen.',
+    color: 'var(--blue)', tint: 'var(--blue-tint)',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h4"/></svg>' },
+  { id: 'late', title: 'Twee laatbetalers opvolgen', assumption: 'DSO −5 dagen', freed: 5 * DAY_REVENUE, shown: '±€135k',
+    detail: LATE_PAYERS.join(' en ') + ' betalen gemiddeld 22 dagen te laat.',
+    color: 'var(--indigo)', tint: 'var(--indigo-tint)',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>' },
+  { id: 'dpo', title: 'Leveranciers betalen op sectormediaan', assumption: 'DPO +5 dagen op €6M aankopen', freed: Math.round(6000000 / 365 * 5), shown: '±€80k',
+    detail: 'Nu 35 dagen, sector 40. Altijd binnen de afgesproken termijn.',
+    note: 'Veel leveranciers bankieren ook bij KBC. Stem af, betaal nooit te laat.',
+    color: 'var(--green)', tint: 'var(--green-tint)',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>' },
+];
+
+/* Bekende posten op korte termijn */
+const KNOWN = {
+  leasing: { day: 15, amount: -164000, name: 'Leasing (kwartaal)' },
+  stadGent: { day: 17, amount: 215000, name: 'Stad Gent' },
+};
+/* Gegevens achter de drie tips */
+const PEETERS = { name: 'Werf Peeters', clientType: 'particulier', breyne: false, value: 180000, materialPaid: 72000, received: 0, advancePct: 0.30, breynePct: 0.05, phase1: 90000, payDelay: 5 };
+const VANHAECKE = { name: 'Vanhaecke', amount: 30000, plannedDay: 1, dueDay: 18, earlyDiscount: false };
+const LYS = { name: 'Syndicus Residentie Lys', clientType: 'professioneel', amount: 21000, sentDay: 0, term: 60, askTerm: 30 };
+const MIN_GAIN = 2500;
+
+/* =====================================================================
+   2. HULPFUNCTIES (uit V1)
+   ===================================================================== */
+function mulberry32(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+let _spare = null;
+function gauss(r) {
+  if (_spare !== null) { const s = _spare; _spare = null; return s; }
+  let u, v, q;
+  do { u = r() * 2 - 1; v = r() * 2 - 1; q = u * u + v * v; } while (q >= 1 || q === 0);
+  const f = Math.sqrt(-2 * Math.log(q) / q);
+  _spare = v * f; return u * f;
+}
+function dateOf(d) { return new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + d); }
+const MONTHS = ['/01', '/02', '/03', '/04', '/05', '/06', '/07', '/08', '/09', '/10', '/11', '/12'];
+const MONTHS_LONG = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+function shortDate(d) { const t = dateOf(d); return t.getDate() + ' ' + MONTHS[t.getMonth()]; }
+function longDate(d) { const t = dateOf(d); return t.getDate() + ' ' + MONTHS_LONG[t.getMonth()]; }
+function eur(n) { const s = Math.abs(Math.round(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); return (n < 0 ? '−€' : '€') + s; }
+function eurK(n) { const k = Math.round(n / 1000); return (k < 0 ? '−€' : '€') + Math.abs(k).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + 'k'; }
+function approxK(n, step = Math.abs(n) < 10000 ? 1000 : 5000) { return '±' + eurK(Math.round(Math.abs(n) / step) * step); }
+function eurM(n) { return n >= 1e6 ? '€' + (n / 1e6).toFixed(n % 1e6 ? 1 : 0).replace('.', ',') + 'M' : eurK(n); }
+function pct(x) { return Math.round(x * 100) + '%'; }
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+const $ = id => document.getElementById(id);
+const CHECK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+const IS_WORKDAY = {}, IS_LAST_WORKDAY = {};
+const CAL = [];   // vaste kalenderposten per dag: [categorie, bedrag]
+for (let d = -PRE - 10; d <= HORIZON + 10; d++) { const w = dateOf(d).getDay(); IS_WORKDAY[d] = w !== 0 && w !== 6; }
+for (let d = -PRE; d <= HORIZON; d++) {
+  if (!IS_WORKDAY[d]) continue;
+  let last = true;
+  for (let k = 1; k <= 4; k++) { if (dateOf(d + k).getMonth() !== dateOf(d).getMonth()) break; if (IS_WORKDAY[d + k]) { last = false; break; } }
+  IS_LAST_WORKDAY[d] = last;
+}
+for (let d = 0; d <= HORIZON; d++) {
+  const t = dateOf(d), items = [];
+  if (d >= 1) {
+    if (t.getDate() === 5) items.push([4, -PROFILE.rsz]);
+    if (t.getDate() === 20) items.push([5, -PROFILE.vat]);
+    PROFILE.prepaidTax.forEach(x => { if (t.getTime() === x.date.getTime()) items.push([6, -x.amount]); });
+  }
+  CAL.push(items);
+}
+const WD = new Uint8Array(PRE + HORIZON + 1), LWD = new Uint8Array(PRE + HORIZON + 1);
+for (let d = -PRE; d <= HORIZON; d++) { WD[d + PRE] = IS_WORKDAY[d] ? 1 : 0; LWD[d + PRE] = IS_LAST_WORKDAY[d] ? 1 : 0; }
+const SIM_CACHE = new Map();
+
+/* =====================================================================
+   3. MONTE CARLO — DAGELIJKSE CASHFLOW (13 weken)
+   Hefbomen gelden enkel voor openstaande en nieuwe posten, zodat de
+   vrijgemaakte cash zichtbaar wordt als eenmalige sprong.
+   ===================================================================== */
+const CATS = ['Ontvangsten klanten', 'Leveranciers', 'Werkingskosten', 'Lonen', 'RSZ', 'Btw', 'Voorafbetaling belastingen', 'Extra scenario', KNOWN.leasing.name, KNOWN.stadGent.name, 'Factuur Vanhaecke', 'Factuur ' + LYS.name, 'Voorschot ' + PEETERS.name];
+
+function simulate(levers, extra) {
+  const key = [...levers].sort().join(',') + '|' + JSON.stringify(extra || []);
+  if (SIM_CACHE.has(key)) return SIM_CACHE.get(key);
+  const res = simulateRaw(levers, extra);
+  SIM_CACHE.set(key, res);
+  return res;
+}
+function simulateRaw(levers, extra) {
+  extra = extra || [];
+  const P = PROFILE, r = mulberry32(20261012);
+  const runs = new Array(RUNS);
+  const cat = CATS.map(() => new Float64Array(HORIZON + 1));
+  const add = (flow, c, d, v) => { if (d >= 1 && d <= HORIZON) { flow[d] += v; cat[c][d] += v / RUNS; } };
+  const hasBill = levers.has('bill'), hasLate = levers.has('late'), hasDpo = levers.has('dpo');
+  _spare = null;
+  for (let k = 0; k < RUNS; k++) {
+    const flow = new Float64Array(HORIZON + 1);
+    for (let d = -PRE; d <= HORIZON; d++) {
+      if (!WD[d + PRE]) continue;
+      const work = P.workPerWorkday * (1 + 0.25 * gauss(r));
+      const bill = Math.max(2, Math.round(P.billLag + 4 * gauss(r) - (hasBill && d >= -10 ? 8 : 0)));
+      const isLate = r() < P.latePayerShare;
+      const lateness = isLate ? (hasLate && d >= -45 ? P.latePayerExtra - 16.7 : P.latePayerExtra) : P.normalLate;
+      add(flow, 0, d + bill + P.payTerm + Math.max(-5, Math.round(lateness + 6 * gauss(r))), work);
+      const buy = P.purchasesPerWorkday * (1 + 0.3 * gauss(r));
+      add(flow, 1, d + Math.round(P.dpo + (hasDpo && d >= -30 ? 5 : 0) + 4 * gauss(r)), -buy);
+      if (d >= 1) {
+        add(flow, 2, d, -P.overheadPerWorkday * (1 + 0.3 * gauss(r)));
+        if (LWD[d + PRE]) add(flow, 3, d, -P.wages);
+      }
+    }
+    for (let d = 1; d <= HORIZON; d++) for (const [c, v] of CAL[d]) add(flow, c, d, v);
+    add(flow, 8, KNOWN.leasing.day, KNOWN.leasing.amount);
+    add(flow, 9, KNOWN.stadGent.day, KNOWN.stadGent.amount);
+    add(flow, 10, VANHAECKE.plannedDay, -VANHAECKE.amount);
+    add(flow, 11, LYS.sentDay + LYS.term, LYS.amount);
+    extra.forEach(([d, v]) => add(flow, 7, d, v));
+    const bal = new Float64Array(HORIZON + 1);
+    bal[0] = P.start;
+    for (let d = 1; d <= HORIZON; d++) bal[d] = bal[d - 1] + flow[d];
+    runs[k] = bal;
+  }
+  const p10 = [], p50 = [], p90 = [], col = new Float64Array(RUNS);
+  for (let d = 0; d <= HORIZON; d++) {
+    for (let k = 0; k < RUNS; k++) col[k] = runs[k][d];
+    col.sort();
+    p10.push(col[RUNS * 0.1 | 0]); p50.push(col[RUNS * 0.5 | 0]); p90.push(col[RUNS * 0.9 | 0]);
+  }
+  const risk = (limit, until) => runs.filter(b => { for (let d = 0; d <= until; d++) if (b[d] < limit) return true; return false; }).length / RUNS;
+  return { p10, p50, p90, risk, cat, runs };
+}
+
+/* Verleden: één gerealiseerd pad van de laatste 8 weken, eindigend op het saldo van vandaag */
+function buildHistory() {
+  const r = mulberry32(777), days = HISTORY_WEEKS * 7;
+  const flows = [];
+  for (let d = -days + 1; d <= 0; d++) {
+    let f = 0; const t = dateOf(d);
+    if (IS_WORKDAY[d]) f += PROFILE.workPerWorkday * 0.99 * (1 + 0.6 * gauss(r)) - PROFILE.purchasesPerWorkday * (1 + 0.4 * gauss(r)) - PROFILE.overheadPerWorkday;
+    if (IS_LAST_WORKDAY[d]) f -= PROFILE.wages;
+    if (t.getDate() === 5) f -= PROFILE.rsz;
+    if (t.getDate() === 20) f -= PROFILE.vat;
+    flows.push(f);
+  }
+  const bal = new Array(days); bal[days - 1] = PROFILE.start;
+  for (let i = days - 2; i >= 0; i--) bal[i] = bal[i + 1] - flows[i + 1];
+  const pts = [];
+  for (let w = 0; w < HISTORY_WEEKS; w++) pts.push({ x: w - HISTORY_WEEKS, v: Math.min(...bal.slice(w * 7, w * 7 + 7)), d0: -days + 1 + w * 7 });
+  pts.push({ x: 0, v: PROFILE.start, d0: 0 });
+  return pts;
+}
+const HISTORY = buildHistory();
+
+/* Dagreeks → weekpunten (laagste verwachte saldo per week) */
+function weekly(sim, weeks) {
+  const pts = [{ x: 0, d: 0, p10: sim.p10[0], p50: sim.p50[0], p90: sim.p90[0] }];
+  for (let w = 1; w <= weeks; w++) {
+    let best = (w - 1) * 7 + 1;
+    for (let d = best; d <= Math.min(w * 7, HORIZON); d++) if (sim.p50[d] < sim.p50[best]) best = d;
+    pts.push({ x: w, d: best, from: (w - 1) * 7 + 1, to: Math.min(w * 7, HORIZON), p10: sim.p10[best], p50: sim.p50[best], p90: sim.p90[best] });
+  }
+  return pts;
+}
+function lowest(series, from, to) { let min = Infinity, day = from; for (let d = from; d <= to; d++) if (series[d] < min) { min = series[d]; day = d; } return { value: min, day }; }
+
+/* =====================================================================
+   4. MONTE CARLO — WERF-CASE (per maand, april 2027 – maart 2028)
+   ===================================================================== */
+const PROJECT_START = new Date(2027, 3, 1);
+const P_MONTHS = 12;
+const BASE_MONTHLY = [20, 20, 10, -150, 20, 170, 110, 40, 30, 20, 10, 20].map(v => v * 1000); // bouwverlof in juli
+const P_START_BALANCE = 192000;   // verwacht saldo begin april 2027
+function monthLabel(m) { const t = new Date(PROJECT_START.getFullYear(), PROJECT_START.getMonth() + m - 1, 1); return MONTHS[t.getMonth()]; }
+function monthLong(m) { const t = new Date(PROJECT_START.getFullYear(), PROJECT_START.getMonth() + m - 1, 1); return MONTHS_LONG[t.getMonth()] + ' ' + t.getFullYear(); }
+
+function projectCase(amount = 1500000, months = 10) {
+  const scale = amount / 1500000;
+  const loan = Math.max(50000, Math.round(200000 * scale / 50000) * 50000);
+  return {
+    amount, months,
+    monthlyBill: amount / months,
+    monthlyCost: amount * 0.9 / months,
+    retention: 0.05,
+    advance: 0.10,
+    loan, loanMonths: 4, loanStart: 3,
+    loanInterest: Math.round(loan * CREDIT_RATE * 4 / 12),
+    guaranteeFee: Math.round(amount * 0.05 * 0.015),
+  };
+}
+
+function simulateProject(pc, opts) {
+  opts = opts || {};
+  const r = mulberry32(4242), M = P_MONTHS, runs = [];
+  for (let k = 0; k < RUNS; k++) {
+    const f = new Float64Array(M + 1);
+    for (let m = 1; m <= M; m++) f[m] += BASE_MONTHLY[m - 1] + 25000 * gauss(r);
+    if (opts.project !== false) {
+      const s = opts.delay ? 2 : 0;
+      for (let i = 1; i <= pc.months; i++) {
+        const m = i + s;
+        if (m <= M) f[m] -= pc.monthlyCost * (1 + 0.04 * gauss(r));
+        const rm = m + 2 + (r() < 0.2 ? 1 : 0);
+        let amt = pc.monthlyBill * (opts.guarantee ? 1 : 1 - pc.retention);
+        if (opts.advance && i > pc.months - 2) amt -= pc.amount * pc.advance / 2;   // voorschot verrekend in de laatste 2 staten
+        if (rm <= M) f[rm] += amt;
+      }
+      if (opts.advance) f[1 + s] += pc.amount * pc.advance;
+      if (opts.loan) { f[pc.loanStart] += pc.loan; if (pc.loanStart + pc.loanMonths <= M) f[pc.loanStart + pc.loanMonths] -= pc.loan + pc.loanInterest; }
+    }
+    const b = [P_START_BALANCE];
+    for (let m = 1; m <= M; m++) b.push(b[m - 1] + f[m]);
+    runs.push(b);
+  }
+  const q = p => Array.from({ length: M + 1 }, (_, m) => { const c = runs.map(x => x[m]).sort((a, b) => a - b); return c[Math.floor(RUNS * p)]; });
+  const p10 = q(0.1), p50 = q(0.5), p90 = q(0.9);
+  const risk = limit => runs.filter(b => b.some(v => v < limit)).length / RUNS;
+  return { p10, p50, p90, risk, low: lowest(p50, 1, M) };
+}
+
+/* =====================================================================
+   4b. TIPS — deterministische verschuivingen bovenop de simulatie.
+   Omdat ze geen toeval gebruiken, schuift elk scenario exact mee:
+   p50 met tip = p50 zonder tip + verschil in saldo.
+   ===================================================================== */
+function tipFlows(id) {
+  if (id === 't1') {
+    const t = tip1Info();
+    return [[PEETERS.payDelay, t.amount, 12]];
+  }
+  if (id === 't2') return [[VANHAECKE.plannedDay, VANHAECKE.amount, 10], [VANHAECKE.dueDay, -VANHAECKE.amount, 10]];
+  if (id === 't3') return [[LYS.sentDay + LYS.term, -LYS.amount, 11], [LYS.sentDay + LYS.askTerm, LYS.amount, 11]];
+  return [];
+}
+function deltaOf(ids) {
+  const delta = new Float64Array(HORIZON + 1);
+  ids.forEach(id => tipFlows(id).forEach(([d, v]) => { if (d > HORIZON) return; for (let k = Math.max(1, d); k <= HORIZON; k++) delta[k] += v; }));
+  return delta;
+}
+function derive(raw, ids) {
+  const delta = deltaOf(ids);
+  const sh = a => a.map((v, d) => v + delta[d]);
+  return {
+    raw, delta, cat: raw.cat,
+    p10: sh(raw.p10), p50: sh(raw.p50), p90: sh(raw.p90),
+    risk: (limit, until) => raw.runs.filter(b => { for (let d = 0; d <= until; d++) if (b[d] + delta[d] < limit) return true; return false; }).length / RUNS,
+  };
+}
+function tip1Info() {
+  const pct = PEETERS.breyne ? PEETERS.breynePct : PEETERS.advancePct;
+  const advance = Math.round(PEETERS.value * pct);
+  const phase1 = advance < PEETERS.materialPaid / 2;
+  return { advance, phase1, amount: phase1 ? PEETERS.phase1 : advance, pct };
+}
+const TIP_DEFS = [
+  { id: 't1', short: 'Voorschot Peeters', title: () => tip1Info().phase1 ? `Tussenfactuur fase 1 aan Peeters` : `Vraag ${Math.round(tip1Info().pct * 100)}% voorschot aan Peeters`,
+    text: () => { const t = tip1Info(); return t.phase1
+      ? `${PEETERS.name}: ${eur(PEETERS.materialPaid)} materiaal betaald, ${eur(PEETERS.received)} ontvangen. Stuur een tussenfactuur na fase 1 (${eur(PEETERS.phase1)}).`
+      : `${PEETERS.name}: ${eur(PEETERS.materialPaid)} materiaal betaald, ${eur(PEETERS.received)} ontvangen. Stuur een voorschotfactuur van ${Math.round(t.pct * 100)}% (${eur(t.advance)}).`; },
+    check: sday => {
+      if (PEETERS.value < 5000) return 'Werf onder €5.000.';
+      if (PEETERS.breyne) return `Breyne: max. 5% voorschot (${eur(PEETERS.value * PEETERS.breynePct)}), te weinig.`;
+      if (sday <= 7) return 'Tekort binnen 7 dagen: voorschot komt te laat.';
+      return null;
+    } },
+  { id: 't2', short: 'Vanhaecke op vervaldag', title: () => `Betaal Vanhaecke op vervaldag ${shortDateText(VANHAECKE.dueDay)}`,
+    text: () => `Betaal ${VANHAECKE.name} (${eur(VANHAECKE.amount)}) op de vervaldag, ${shortDateText(VANHAECKE.dueDay)}, niet vandaag.`,
+    check: sday => {
+      if (VANHAECKE.earlyDiscount) return 'Korting voor vroeg betalen.';
+      if (VANHAECKE.dueDay <= sday) return 'Vervaldag valt vóór het tekort.';
+      return null;
+    } },
+  { id: 't3', short: 'Termijn Lys 30 dagen', title: () => `Vraag Syndicus Lys ${LYS.askTerm} i.p.v. ${LYS.term} dagen`,
+    text: () => `Vraag ${LYS.name} ${LYS.askTerm} dagen i.p.v. ${LYS.term} voor de volgende factuur (${eur(LYS.amount)}).`,
+    check: sday => {
+      if (LYS.clientType === 'particulier') return 'Particulier: voorschot werkt beter.';
+      if (LYS.sentDay + LYS.askTerm > sday) return 'Geld komt pas na het tekort.';
+      return null;
+    } },
+];
+function shortDateText(d) { const t = dateOf(d); return t.getDate() + ' ' + ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'][t.getMonth()]; }
+
+/* Welke tips tonen we? Regels + minstens €2.500 winst op het laagste punt */
+function evaluateTips() {
+  const raw = state.raw, chosen = state.tipsApplied;
+  const base = derive(raw, []);
+  const low = lowest(base.p50, 0, HORIZON);
+  const shortage = low.value < 0;
+  const shown = [], hidden = [];
+  const cashOf = id => id === 't1' ? tip1Info().amount : id === 't2' ? VANHAECKE.amount : LYS.amount;
+  TIP_DEFS.forEach(t => {
+    if (!shortage) { hidden.push({ ...t, reason: 'Geen tekort.' }); return; }
+    const why = t.check(low.day);
+    if (why) { hidden.push({ ...t, reason: why }); return; }
+    const gain = lowest(derive(raw, [t.id]).p50, 0, HORIZON).value - low.value;
+    if (gain < MIN_GAIN) { hidden.push({ ...t, reason: `Effect onder ${eur(MIN_GAIN)}.` }); return; }
+    shown.push({ ...t, on: chosen.has(t.id), gain, cash: cashOf(t.id) });
+  });
+  const lowAll = lowest(derive(raw, shown.map(t => t.id)).p50, 0, HORIZON);
+  return { shown: shown.slice(0, 3), hidden, shortage, low, lowAll, insufficient: shortage && lowAll.value < 0 };
+}
+
+/* =====================================================================
+   5. GRAFIEK — duidelijke punten, rechte lijnen
+   past: [{x, v}], future: [{x, p10, p50, p90}], dashed: [{x, v}], ghost: [{x, v}]
+   ===================================================================== */
+function niceStep(span) { const raw = span / 5, pow = Math.pow(10, Math.floor(Math.log10(raw))), n = raw / pow; return (n < 1.5 ? 1 : n < 3 ? 2 : n < 7 ? 5 : 10) * pow; }
+
+function pointChart(o) {
+  const { past = [], future, dashed = null, ghost = null, xLabel, selected = null, W = 360, H = 240, compact = false, limit = null, todayLabel = true } = o;
+  const padL = compact ? 8 : 48, padR = 12, padT = 14, padB = compact ? 10 : 26;
+  const iw = W - padL - padR, ih = H - padT - padB;
+  const xs = past.map(p => p.x).concat(future.map(p => p.x));
+  const xmin = Math.min(...xs), xmax = Math.max(...xs);
+  const vals = [0].concat(past.map(p => p.v), future.map(p => p.p10), future.map(p => p.p90), (dashed || []).map(p => p.v), (ghost || []).map(p => p.v));
+  let lo = Math.min(...vals), hi = Math.max(...vals);
+  if (limit != null && lo < limit * 0.7) lo = Math.min(lo, limit);
+  const step = niceStep(hi - lo);
+  lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step;
+  const X = x => padL + (x - xmin) / (xmax - xmin) * iw;
+  const Y = v => padT + (hi - v) / (hi - lo) * ih;
+  const line = pts => pts.map((p, i) => (i ? 'L' : 'M') + X(p.x).toFixed(1) + ' ' + Y(p.v).toFixed(1)).join('');
+  let g = `<rect x="${padL}" y="${Y(0).toFixed(1)}" width="${iw}" height="${Math.max(0, Y(lo) - Y(0)).toFixed(1)}" fill="#FFF6EE"/>`;
+  if (!compact) {
+    for (let v = lo; v <= hi + 1; v += step) {
+      g += `<line x1="${padL}" x2="${W - padR}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="${v === 0 ? '#9AA3AF' : '#E3E7EE'}" stroke-dasharray="${v === 0 ? '0' : '4 4'}"/>`;
+      g += `<text x="${padL - 8}" y="${(Y(v) + 4).toFixed(1)}" text-anchor="end" font-size="10.5" fill="#6B7280">${eurK(v)}</text>`;
+    }
+    if (limit != null && limit >= lo) {
+      g += `<line x1="${padL}" x2="${W - padR}" y1="${Y(limit)}" y2="${Y(limit)}" stroke="#C0392B" stroke-width="1.2" stroke-dasharray="2 3"/>`;
+      g += `<text x="${W - padR}" y="${Y(limit) - 5}" text-anchor="end" font-size="10.5" fill="#A5281B">Limiet kaskrediet</text>`;
+    }
+    const every = (xmax - xmin) > 14 ? 3 : (xmax - xmin) > 8 ? 2 : 1;
+    xs.forEach(x => { if ((x - xmin) % every === 0 || x === 0) g += `<text x="${X(x).toFixed(1)}" y="${H - 7}" text-anchor="middle" font-size="10.5" fill="${x === 0 ? '#14151A' : '#6B7280'}" font-weight="${x === 0 ? 700 : 400}">${xLabel(x)}</text>`; });
+  } else {
+    g += `<line x1="${padL}" x2="${W - padR}" y1="${Y(0)}" y2="${Y(0)}" stroke="#9AA3AF"/>`;
+  }
+  if (past.length && todayLabel) g += `<line x1="${X(0)}" x2="${X(0)}" y1="${padT}" y2="${padT + ih}" stroke="#9AA3AF" stroke-dasharray="3 3"/>`;
+  // onzekerheidsband
+  const band = future.map((p, i) => (i ? 'L' : 'M') + X(p.x).toFixed(1) + ' ' + Y(p.p90).toFixed(1)).join('') +
+    future.slice().reverse().map(p => 'L' + X(p.x).toFixed(1) + ' ' + Y(p.p10).toFixed(1)).join('') + 'Z';
+  g += `<path d="${band}" fill="#DDF0FD" opacity=".85"/>`;
+  if (ghost) g += `<path d="${line(ghost)}" fill="none" stroke="#B8C0CC" stroke-width="1.8"/>`;
+  if (past.length) g += `<path d="${line(past)}" fill="none" stroke="#1B2A4A" stroke-width="2.2" stroke-linejoin="round"/>`;
+  g += `<path d="${line(future.map(p => ({ x: p.x, v: p.p50 })))}" fill="none" stroke="#1E9BF0" stroke-width="2.4" stroke-linejoin="round"/>`;
+  if (dashed) g += `<path d="${line(dashed)}" fill="none" stroke="#3B30C4" stroke-width="2.2" stroke-dasharray="6 4" stroke-linejoin="round"/>`;
+  const r = compact ? 2 : 2.8;
+  past.forEach(p => { if (p.x < 0) g += `<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="${r}" fill="#fff" stroke="#1B2A4A" stroke-width="2"/>`; });
+  if (dashed) dashed.forEach(p => { g += `<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="${r - 0.8}" fill="#fff" stroke="#3B30C4" stroke-width="1.8"/>`; });
+  future.forEach(p => {
+    const sel = selected === p.x, neg = p.p50 < 0;
+    g += `<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.p50).toFixed(1)}" r="${sel ? r + 1.5 : r}" fill="${sel ? '#1E9BF0' : neg ? '#EA7A12' : '#fff'}" stroke="${neg && !sel ? '#EA7A12' : '#1E9BF0'}" stroke-width="1.6"/>`;
+  });
+  // laagste punt label
+  const low = future.reduce((a, b) => b.p50 < a.p50 ? b : a, future[0]);
+  if (!compact && low.p50 < 0) g += `<text x="${X(low.x) + 9}" y="${Y(low.p50) + 4}" font-size="11" font-weight="700" fill="#7A2E00">${eurK(low.p50)}</text>`;
+  // klikzones per punt
+  if (!compact) {
+    const cw = iw / Math.max(1, xmax - xmin);
+    future.forEach(p => { g += `<rect data-pt="${p.x}" x="${(X(p.x) - cw / 2).toFixed(1)}" y="${padT}" width="${cw.toFixed(1)}" height="${ih}" fill="transparent"><title>${xLabel(p.x)}: ${eur(p.p50)}</title></rect>`; });
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Cashflowgrafiek, laagste verwachte punt ${esc(eur(low.p50))}">${g}</svg>`;
+}
+
+/* Weekgrafiek van het overzicht: kleine punten, rechte lijnen, geen overlap.
+   Tik op een punt: datum en bedrag verschijnen in een label. */
+function weekChart(o) {
+  const { past, future, dashed, selected } = o;
+  const W = 360, H = 230, padL = 40, padR = 12, padT = 30, padB = 24;
+  const iw = W - padL - padR, ih = H - padT - padB;
+  const all = past.concat(future.map(p => ({ x: p.x, v: p.p50 })), dashed || []);
+  const xmin = Math.min(...all.map(p => p.x)), xmax = Math.max(...all.map(p => p.x));
+  let lo = Math.min(0, ...all.map(p => p.v)), hi = Math.max(...all.map(p => p.v));
+  const step = niceStep(hi - lo);
+  lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step;
+  const X = x => padL + (x - xmin) / (xmax - xmin) * iw;
+  const Y = v => padT + (hi - v) / (hi - lo) * ih;
+  const kLab = v => (v < 0 ? '−' : '') + Math.abs(Math.round(v / 1000)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + 'k';
+  let g = '';
+  for (let v = lo; v <= hi + 1; v += step) {
+    const zero = Math.abs(v) < 1;
+    g += `<line x1="${padL}" x2="${W - padR}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="${zero ? '#D5DBE5' : '#EEF1F5'}" stroke-width="${zero ? 1.4 : 1}" ${zero ? '' : 'stroke-dasharray="3 4"'}/>`;
+    g += `<text x="${padL - 8}" y="${(Y(v) + 4).toFixed(1)}" text-anchor="end" font-size="11" fill="${v < 0 ? '#C0392B' : '#8A93A3'}">${zero ? '0' : kLab(v)}</text>`;
+  }
+  // maandlabels, met minimale afstand zodat ze niet overlappen
+  let lastX = -99, lastM = null;
+  const pts = past.map(p => ({ x: p.x, d: p.d0 })).concat(future.slice(1).map(p => ({ x: p.x, d: p.from })));
+  pts.forEach(p => {
+    const m = dateOf(p.d).getMonth();
+    if (m !== lastM) {
+      const px = X(p.x);
+      if (lastM !== null && px - lastX > 34 && px < W - padR - 8) { g += `<text x="${px.toFixed(1)}" y="${H - 6}" text-anchor="middle" font-size="11" fill="#8A93A3">${['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'][m]}</text>`; lastX = px; }
+      lastM = m;
+    }
+  });
+  // vandaag
+  g += `<line x1="${X(0)}" x2="${X(0)}" y1="${padT - 8}" y2="${padT + ih}" stroke="#B8C0CC" stroke-width="1"/>`;
+  g += `<text x="${X(0) + 5}" y="${padT - 12}" font-size="11" fill="#8A93A3">vandaag</text>`;
+  const path = arr => arr.map((p, i) => (i ? 'L' : 'M') + X(p.x).toFixed(1) + ' ' + Y(p.v).toFixed(1)).join('');
+  const fut = future.map(p => ({ x: p.x, v: p.p50 }));
+  g += `<path d="${path(past)}" fill="none" stroke="#1B2A4A" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  g += `<path d="${path(fut)}" fill="none" stroke="#1E9BF0" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>`;
+  // stippellijn enkel waar ze echt afwijkt: geen dubbele lijnen over elkaar
+  if (dashed) {
+    const diff = (a, b) => Math.abs(a - b) > 500;
+    for (let i = 1; i < dashed.length; i++) {
+      const a = dashed[i - 1], b = dashed[i];
+      if (diff(a.v, fut[i - 1].v) || diff(b.v, fut[i].v)) g += `<path d="M${X(a.x).toFixed(1)} ${Y(a.v).toFixed(1)}L${X(b.x).toFixed(1)} ${Y(b.v).toFixed(1)}" stroke="#3B30C4" stroke-width="2.2" stroke-dasharray="5 4" stroke-linecap="round" fill="none"/>`;
+    }
+  }
+  // kleine databollen
+  past.forEach(p => { if (p.x < 0) g += `<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="2" fill="#1B2A4A"/>`; });
+  fut.forEach(p => { g += `<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="2.2" fill="${p.v < 0 ? '#EA7A12' : '#1E9BF0'}"/>`; });
+  // label bij aangetikt punt
+  if (selected != null) {
+    const isPast = selected < 0;
+    const P = isPast ? past.find(p => p.x === selected) : future.find(p => p.x === selected);
+    if (P) {
+      const v = isPast ? P.v : P.p50, px = X(P.x), py = Y(v);
+      const date = isPast ? `week van ${shortDateText(P.d0)}` : P.x === 0 ? 'vandaag' : shortDateText(P.d);
+      const lines = [[date, '#8A93A3', 400], [eur(v), v < 0 ? '#C0392B' : '#1B2A4A', 700]];
+      if (!isPast && dashed) { const dv = dashed.find(q => q.x === P.x); if (dv && Math.abs(dv.v - v) > 500) lines.push(['met keuze ' + eurK(dv.v), '#3B30C4', 600]); }
+      const bw = 112, bh = 12 + lines.length * 15;
+      const bx = Math.min(W - padR - bw, Math.max(padL, px - bw / 2));
+      const by = py - bh - 12 < 2 ? py + 12 : py - bh - 12;
+      g += `<line x1="${px}" x2="${px}" y1="${padT}" y2="${padT + ih}" stroke="#1B2A4A" stroke-width="1" opacity=".15"/>`;
+      g += `<circle cx="${px}" cy="${py}" r="4.5" fill="#fff" stroke="${isPast ? '#1B2A4A' : '#1E9BF0'}" stroke-width="2"/>`;
+      g += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="9" fill="#fff" stroke="#E3E7EE"/>`;
+      lines.forEach(([t, c, w], i) => { g += `<text x="${bx + 10}" y="${by + 17 + i * 15}" font-size="11.5" font-weight="${w}" fill="${c}">${esc(t)}</text>`; });
+    }
+  }
+  // klikzones
+  const cw = iw / Math.max(1, xmax - xmin);
+  past.concat(future.map(p => ({ x: p.x, v: p.p50 }))).forEach(p => {
+    if (p.x === 0 && past.some(q => q.x === 0) && future.some(q => q.x === 0) && p === past.find(q => q.x === 0)) return;
+    g += `<rect data-pt="${p.x}" x="${(X(p.x) - cw / 2).toFixed(1)}" y="${padT}" width="${cw.toFixed(1)}" height="${ih}" fill="transparent"/>`;
+  });
+  const low = lowest(state.sim.p50, 0, state.weeks * 7);
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Saldo per week, laagste punt ${esc(eur(low.value))} op ${longDate(low.day)}">${g}</svg>`;
+}
+
+/* =====================================================================
+   6. STATE
+   ===================================================================== */
+const state = {
+  applied: new Set(), tipsApplied: new Set(), preview: null, weeks: 13, selected: null, raw: null, tips: null, tipSel: null, advisorAsked: false,
+  sim: null, effects: {}, previewSim: null,
+  project: { case: projectCase(), opts: new Set() },
+};
+function keyOf(set) { return [...set].sort().join(',') + '|[]'; }
+function withLever(id) { const s = new Set(state.applied); s.add(id); return s; }
+function effectOf(id, force) {
+  const set = withLever(id), key = keyOf(set);
+  if (!SIM_CACHE.has(key) && !force) return null;
+  const sim = derive(simulate(set), []);
+  return { sim, low: lowest(sim.p50, 0, HORIZON) };
+}
+function recompute() {
+  state.raw = simulate(state.applied);
+  state.sim = derive(state.raw, []);
+  state.choiceSim = state.tipsApplied.size ? derive(state.raw, [...state.tipsApplied]) : null;
+  state.tips = evaluateTips();
+  state.effects = {};
+  LEVERS.forEach(l => { if (!state.applied.has(l.id)) { const e = effectOf(l.id); if (e) state.effects[l.id] = e; } });
+  if (state.preview && state.preview !== 'all') { state.effects[state.preview] = effectOf(state.preview, true); state.previewSim = state.effects[state.preview].sim; }
+  else if (!state.preview) state.previewSim = null;
+}
+/* Effecten van de hefbomen op de achtergrond berekenen, zodat de app meteen verschijnt */
+let effectTimer = null;
+function scheduleEffects() {
+  clearTimeout(effectTimer);
+  const todo = LEVERS.filter(l => !state.applied.has(l.id) && !state.effects[l.id]);
+  if (!todo.length) return;
+  effectTimer = setTimeout(() => {
+    state.effects[todo[0].id] = effectOf(todo[0].id, true);
+    renderLevers(); renderWarning();
+    scheduleEffects();
+  }, 30);
+}
+
+/* =====================================================================
+   7. OVERZICHT RENDEREN
+   ===================================================================== */
+function weekLabel(x) { return x === 0 ? 'nu' : shortDate(x * 7).split(' ')[0] + ' ' + shortDate(x * 7).split(' ')[1]; }
+
+function renderChart() {
+  const wk = weekly(state.sim, state.weeks);
+  const past = HISTORY.slice(state.weeks <= 4 ? HISTORY.length - 5 : 0).map(p => ({ x: p.x, v: p.v, d0: p.d0 }));
+  const dashSim = state.previewSim || state.choiceSim;
+  const dashed = dashSim ? weekly(dashSim, state.weeks).map(p => ({ x: p.x, v: p.p50 })) : null;
+  $('chart').innerHTML = weekChart({ past, future: wk, dashed, selected: state.selected });
+  $('legend-dash').classList.toggle('hidden', !dashed);
+  const low = lowest(state.sim.p50, 0, state.weeks * 7);
+  let t = `<span>Laagste <b>${eurK(low.value)}</b> · ${shortDateText(low.day)}</span>`;
+  if (dashSim) t += `<span>Met keuze <b style="color:var(--indigo)">${eurK(lowest(dashSim.p50, 0, state.weeks * 7).value)}</b></span>`;
+  $('readout').innerHTML = t;
+  renderDetail(wk);
+}
+
+function renderDetail(wk) {
+  const box = $('detail');
+  if (state.selected == null || state.selected < 0 || state.selected > state.weeks) { box.classList.add('hidden'); return; }
+  const p = wk.find(q => q.x === state.selected);
+  const s = state.sim;
+  let rows = '';
+  if (p.x === 0) {
+    rows = `<div class="move"><span>Saldo vandaag</span><span>${eur(PROFILE.start)}</span></div>`;
+  } else {
+    const extraFlows = [];
+    const sums = CATS.map((name, c) => { let v = 0; for (let d = p.from; d <= p.to; d++) v += s.cat[c][d]; extraFlows.forEach(([d, amt, cc]) => { if (cc === c && d >= p.from && d <= p.to) v += amt; }); return { name, v }; })
+      .filter(x => Math.abs(x.v) > 500).sort((a, b) => b.v - a.v);
+    rows = sums.map(x => `<div class="move"><span>${x.name}</span><span class="${x.v > 0 ? 'in' : ''}">${x.v > 0 ? '+' : ''}${eur(x.v)}</span></div>`).join('');
+  }
+  box.innerHTML = `<div class="detail-head">
+      <strong>${p.x === 0 ? 'Vandaag' : `${shortDateText(p.from)} – ${shortDateText(p.to)}`}</strong>
+      <button class="x-btn" data-close-detail="1" aria-label="Details sluiten"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="hint" style="margin-bottom:4px">${p.x === 0 ? '' : `Laagste punt ${eurK(p.p50)} · bandbreedte ${eurK(p.p10)} tot ${eurK(p.p90)}`}</div>
+    ${rows}`;
+  box.classList.remove('hidden');
+}
+
+function renderLevers() {
+  $('levers').innerHTML = LEVERS.map(l => {
+    const on = state.applied.has(l.id), sel = state.preview === l.id;
+    return `<div class="lever ${sel ? 'selected' : ''}">
+      <button class="lever-main" data-preview="${l.id}" aria-expanded="${sel}">
+        <span class="l-ico" style="background:${l.tint};color:${l.color}">${l.icon}</span>
+        <span class="l-text"><span class="l-title">${l.title}</span><span class="l-sub">${l.assumption}</span></span>
+        ${on ? `<span class="applied-tag">${CHECK}Actief</span>` : `<span class="l-amt">${l.shown}</span>`}
+      </button>
+      ${sel ? `<div class="l-sub" style="padding-left:52px">${l.detail}</div>
+        ${l.note ? `<div class="note">${l.note}</div>` : ''}
+        <div class="l-actions">${on ? `<button class="btn ghost" data-undo="${l.id}">Ongedaan maken</button>`
+          : `<button class="btn primary" data-apply="${l.id}">Toepassen</button>`}</div>` : ''}
+    </div>`;
+  }).join('');
+  const total = LEVERS.reduce((a, l) => a + l.freed, 0);
+  const interest = total * CREDIT_RATE;
+  $('total').innerHTML = `<div class="total-row"><span style="font-weight:600">Samen</span><strong>${approxK(total)}</strong></div>
+    <p>Bijna een jaar winst. Bespaart ${approxK(interest)} intrest per jaar: ${pct(interest / YEAR_PROFIT)} extra winst.</p>
+    <button class="btn primary" data-preview-all="1" style="align-self:flex-start;margin-top:4px">${state.preview === 'all' ? 'Verberg' : 'Toon in grafiek'}</button>`;
+}
+
+function warning() {
+  const s = state.choiceSim || state.sim, low = lowest(s.p50, 0, HORIZON), p = s.risk(0, HORIZON);
+  if (low.value < 0) return { short: true, low, p,
+    title: `Tekort van ${approxK(low.value)} binnen ${low.day} dagen`,
+    sub: `Verwacht op ${longDate(low.day)}, in ${pct(p)} van de scenario's.`,
+    chip: `Tekort op ${shortDateText(low.day)}  ` };
+  return { short: false, low, p, title: 'Geen tekort verwacht',
+    sub: `Laagste punt ${eurK(low.value)} op ${longDate(low.day)}. Risico ${pct(p)}.`,
+    chip: 'Geen tekort verwacht' };
+}
+
+function renderWarning() {
+  const w = warning();
+  $('warn').classList.toggle('ok', !w.short);
+  $('warn-ico').innerHTML = w.short ? '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 7v6M12 17v.5"/></svg>' : CHECK.replace(/14/g, '22');
+  $('warn-title').textContent = w.title;
+  $('warn-sub').textContent = w.sub;
+  const chip = $('alert-chip'); chip.classList.toggle('ok', !w.short); chip.querySelector('span').textContent = w.chip;
+  const worst = lowest(state.sim.p10, 0, HORIZON);
+  $('why').innerHTML = `<ul><li>${shortDateText(KNOWN.leasing.day)}: leasing kwartaal −${eurK(-KNOWN.leasing.amount)}</li><li>${shortDateText(KNOWN.stadGent.day)}: Stad Gent betaalt +${eurK(KNOWN.stadGent.amount)}</li></ul>
+    <p>Daartussen zak je onder nul. In de slechtste 10% tot ${eurK(worst.value)}.</p>`;
+  const T = state.tips;
+  $('acts').innerHTML = T.shown.map(t => `<button class="act" data-sheettip="${t.id}" aria-pressed="${t.on}">
+      <span class="box">${t.on ? CHECK : ''}</span>
+      <span class="act-text"><span class="act-title">${t.text()}</span><span class="act-effect">${t.on ? 'Meegerekend' : `+${eur(t.cash)}`}</span></span>
+      <span class="cost free">Gratis</span>
+    </button>`).join('');
+  $('sheet-advisor').innerHTML = T.insufficient ? `<div style="margin-top:12px">${advisorCard()}</div>` : '';
+}
+
+function renderTips() {
+  const T = state.tips;
+  let html = T.shown.map(t => `<div class="tiprow ${t.on ? 'on' : ''}">
+      <div style="flex:1;display:flex;flex-direction:column">
+        <button class="tr-main" data-tipinfo="${t.id}" aria-expanded="${state.tipSel === t.id}">
+          <span class="tr-title">${t.title()}</span><span class="tr-gain">+${eur(t.cash)}</span>
+        </button>
+        ${state.tipSel === t.id ? `<div class="tip-more" style="padding:6px 0 2px">${t.text()}</div>` : ''}
+      </div>
+      <button class="switch" role="switch" aria-checked="${t.on}" data-tiptoggle="${t.id}" aria-label="${esc(t.title())}"></button>
+    </div>`).join('');
+  if (T.insufficient) html += advisorCard();
+  if (!T.shown.length && !T.insufficient) html = `<div class="tip-more" style="padding:14px">Geen tips nodig: er is geen tekort verwacht.</div>`;
+  $('tipchips').innerHTML = html;
+
+  const hb = $('hidden-btn');
+  const hid = T.shortage ? T.hidden : [];
+  hb.classList.toggle('hidden', !hid.length);
+  hb.textContent = `${hid.length} ${hid.length === 1 ? 'tip' : 'tips'} verborgen`;
+  $('hidden-list').innerHTML = hid.map(h => `<li><b>${h.short}:</b> ${h.reason}</li>`).join('');
+  if (!hid.length) { $('hidden-list').classList.add('hidden'); hb.setAttribute('aria-expanded', 'false'); }
+}
+function advisorCard() {
+  const T = state.tips;
+  return `<div class="adv-row"><div><b>Deze tips volstaan niet.</b> Je blijft op ${eurK(T.lowAll.value)}. Bespreek een tijdelijke verhoging van je kaskrediet met je KBC-adviseur.</div>
+    <div class="row">${state.advisorAsked ? '<span class="applied-tag">' + CHECK + 'Aangevraagd</span>' : '<button class="btn primary" data-advisor="1">Plan een gesprek</button>'}</div></div>`;
+}
+
+/* Pushmelding in plaats van een pop-up: enkel als de cashflow in gevaar komt */
+function showPush() {
+  const w = warning(); if (!w.short) return;
+  const t1 = state.tips.shown.find(t => t.id === 't1');
+  const first = t1 || state.tips.shown[0];
+  $('push-title').textContent = `Tekort op ${longDate(w.low.day)} `;
+  $('push-text').textContent = first ? first.text() : `Je saldo zakt naar verwachting tot ${eur(w.low.value)}. Tik voor meer uitleg.`;
+  const p = $('push'); p.hidden = false;
+  requestAnimationFrame(() => p.classList.add('show'));
+}
+function hidePush() { const p = $('push'); p.classList.remove('show'); setTimeout(() => { p.hidden = true; }, 450); }
+$('push-open').addEventListener('click', () => { hidePush(); openSheet(); });
+$('push-x').addEventListener('click', hidePush);
+$('hidden-btn').addEventListener('click', () => { const open = $('hidden-list').classList.toggle('hidden') === false; $('hidden-btn').setAttribute('aria-expanded', String(open)); });
+
+function renderAll() {
+  recompute();
+  if (state.preview === 'all') state.previewSim = derive(simulate(new Set(LEVERS.map(l => l.id))), []);
+  renderChart(); renderTips(); renderLevers(); renderWarning();
+  scheduleEffects();
+}
+
+/* =====================================================================
+   8. WERF-ANALYSE ("Kan ik deze werf aan?")
+   ===================================================================== */
+const P_OPTIONS = [
+  { id: 'advance', title: '10% voorschot vragen',
+    effect: pc => `+${eurK(pc.amount * pc.advance)} in maand 1`, cost: () => '€0', bank: 'Vertrouwen' },
+  { id: 'guarantee', title: 'Bankwaarborg i.p.v. inhouding',
+    effect: pc => `+${eurK(pc.amount * pc.retention)} over de werf`, cost: pc => `${approxK(pc.guaranteeFee, 500)}/jaar`, bank: 'Provisie' },
+  { id: 'loan', title: pc => `Lening ${eurK(pc.loan)}, ${pc.loanMonths} maanden`,
+    effect: () => 'Kloof overbrugd', cost: pc => `${approxK(pc.loanInterest, 500)} rente`, bank: 'Rente' },
+  { id: 'delay', title: '2 maanden uitstellen',
+    effect: null, cost: () => 'Project kwijt?', bank: 'Niets' },
+];
+
+function renderProject() {
+  const pc = state.project.case, opts = state.project.opts;
+  const noProj = simulateProject(pc, { project: false });
+  const base = simulateProject(pc, {});
+  const o = {}; opts.forEach(k => o[k] = true);
+  const withOpts = opts.size ? simulateProject(pc, o) : null;
+  const toPts = s => s.p50.map((v, m) => ({ x: m, v }));
+  const future = base.p50.map((v, m) => ({ x: m, p10: base.p10[m], p50: v, p90: base.p90[m] }));
+  $('p-sub').textContent = `${eurM(pc.amount)} · ${pc.months} maanden · vanaf ${monthLong(1)}`;
+
+  const optLow = id => { const x = {}; x[id] = true; return simulateProject(pc, x).low; };
+  const current = withOpts || base;
+  const verdictShort = current.low.value < 0;
+  const combo = simulateProject(pc, { advance: true, guarantee: true });
+
+  $('panel-body').innerHTML = `
+    <div class="facts">
+      <div class="fact"><b>Staat per maand</b><span>betaald na 30 dagen</span></div>
+      <div class="fact"><b>5% inhouding</b><span>tot oplevering</span></div>
+      <div class="fact"><b>Kosten eerst</b><span>inkomsten 2 maanden later</span></div>
+      <div class="fact"><b>Bouwverlof</b><span>juli</span></div>
+    </div>
+    <div class="warn ${verdictShort ? '' : 'ok'}">
+      <div class="warn-ico" aria-hidden="true">${verdictShort ? '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 7v6M12 17v.5"/></svg>' : CHECK.replace(/14/g, '22')}</div>
+      <div><h3>${verdictShort ? `Tekort van ${approxK(current.low.value, 10000)} in maand ${current.low.day}` : 'De werf is te dragen'}</h3>
+      <p>${verdictShort ? `Laagste punt in ${monthLong(current.low.day)}.` : `Laagste punt ${eurK(current.low.value)} in ${monthLong(current.low.day)}.`} Risico ${pct(current.risk(0))}.</p></div>
+    </div>
+    <div>
+      <div class="chart-wrap">${pointChart({ future, ghost: toPts(noProj), dashed: withOpts ? toPts(withOpts) : null, xLabel: m => m === 0 ? 'nu' : monthLabel(m), todayLabel: false })}</div>
+      <div class="legend" style="margin-top:8px">
+        <span><i class="sw fut"></i>Met werf</span><span><i class="sw-ghost"></i>Zonder werf</span>
+        ${withOpts ? '<span><i class="sw-dash"></i>Met opties</span>' : ''}
+      </div>
+    </div>
+    <div class="block-head"><h2 style="font-size:17px">Wat KBC voorstelt</h2></div>
+    <p class="sub" style="margin-top:-10px">Goedkoopste eerst. Tik om te combineren.</p>
+    ${P_OPTIONS.map((opt, i) => {
+      const on = opts.has(opt.id);
+      const title = typeof opt.title === 'function' ? opt.title(pc) : opt.title;
+      const lo = optLow(opt.id);
+      const eff = opt.effect ? opt.effect(pc) : (lo.value >= 0 ? 'Kloof verdwijnt' : 'Kloof schuift op');
+      return `<button class="opt" data-popt="${opt.id}" aria-pressed="${on}">
+        <span class="opt-top"><span class="rank">${i + 1}</span><span class="opt-title">${title}</span><span class="box">${on ? CHECK : ''}</span></span>
+        <span class="opt-grid">
+          <span><span>Effect</span><b>${eff}</b></span>
+          <span><span>Kost</span><b>${opt.cost(pc)}</b></span>
+          <span><span>KBC verdient</span><b>${opt.bank}</b></span>
+        </span>
+        <span class="hint" style="padding-left:38px">Laagste punt ${eurK(lo.value)}</span>
+      </button>`;
+    }).join('')}
+    <div class="advice">
+      <h3>Advies</h3>
+      <p>Voorschot + bankwaarborg: van ${eurK(base.low.value)} naar ${eurK(combo.low.value)}. De lening van ${eurK(pc.loan)} is je vangnet.</p>
+      <button class="btn" data-advice="1">${opts.has('advance') && opts.has('guarantee') && opts.size === 2 ? 'Getoond in grafiek' : 'Toon in grafiek'}</button>
+    </div>
+    <p class="assume">Aannames: 90% kost, voorschot verrekend in laatste 2 staten, rente 7%. Illustratief.</p>`;
+}
+
+function openProject(pc) {
+  if (pc) { state.project.case = pc; state.project.opts = new Set(); }
+  renderProject();
+  const p = $('panel'); p.classList.remove('hidden');
+  requestAnimationFrame(() => p.classList.add('show'));
+  setTimeout(() => $('panel-back').focus(), 300);
+}
+function closeProject() { const p = $('panel'); p.classList.remove('show'); setTimeout(() => p.classList.add('hidden'), 300); }
+$('panel-back').addEventListener('click', closeProject);
+$('panel').addEventListener('keydown', e => { if (e.key === 'Escape') closeProject(); });
+
+/* =====================================================================
+   9. INTERACTIE
+   ===================================================================== */
+function openSheet() { const s = $('scrim'); s.classList.remove('hidden'); requestAnimationFrame(() => s.classList.add('show')); setTimeout(() => $('acts').querySelector('button')?.focus(), 250); }
+function closeSheet() { const s = $('scrim'); s.classList.remove('show'); setTimeout(() => s.classList.add('hidden'), 250); $('alert-chip').focus(); }
+$('alert-chip').addEventListener('click', openSheet);
+$('sheet-close').addEventListener('click', closeSheet);
+$('scrim').addEventListener('click', e => { if (e.target === $('scrim')) closeSheet(); });
+$('scrim').addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+$('why-btn').addEventListener('click', () => { const open = $('why').classList.toggle('hidden') === false; $('why-btn').setAttribute('aria-expanded', String(open)); });
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-tipinfo],[data-tiptoggle],[data-sheettip],[data-advisor],[data-pt],[data-close-detail],[data-toggle],[data-preview],[data-preview-all],[data-apply],[data-undo],[data-range],[data-nav],[data-open-project],[data-popt],[data-advice]');
+  if (!t) return;
+  const ds = t.dataset;
+  if (ds.tipinfo) { state.tipSel = state.tipSel === ds.tipinfo ? null : ds.tipinfo; renderTips(); document.querySelector(`[data-tipinfo="${ds.tipinfo}"]`)?.focus(); }
+  else if (ds.tiptoggle) {
+    state.tipsApplied.has(ds.tiptoggle) ? state.tipsApplied.delete(ds.tiptoggle) : state.tipsApplied.add(ds.tiptoggle);
+    state.preview = null; renderAll();
+    document.querySelector(`[data-tiptoggle="${ds.tiptoggle}"]`)?.focus();
+  }
+  else if (ds.sheettip) { state.tipsApplied.has(ds.sheettip) ? state.tipsApplied.delete(ds.sheettip) : state.tipsApplied.add(ds.sheettip); state.preview = null; renderAll(); document.querySelector(`[data-sheettip="${ds.sheettip}"]`)?.focus(); }
+  else if (ds.advisor) { state.advisorAsked = true; renderTips(); renderWarning(); }
+  else if (ds.pt !== undefined) { const x = Number(ds.pt); state.selected = state.selected === x ? null : x; renderChart(); }
+  else if (ds.closeDetail) { state.selected = null; renderChart(); }
+  else if (ds.toggle) { state.applied.has(ds.toggle) ? state.applied.delete(ds.toggle) : state.applied.add(ds.toggle); state.preview = null; renderAll(); document.querySelector(`[data-toggle="${ds.toggle}"]`)?.focus(); }
+  else if (ds.apply) { state.applied.add(ds.apply); state.preview = null; renderAll(); }
+  else if (ds.undo) { state.applied.delete(ds.undo); state.preview = null; renderAll(); }
+  else if (ds.previewAll) {
+    state.preview = state.preview === 'all' ? null : 'all';
+    state.previewSim = state.preview ? derive(simulate(new Set(LEVERS.map(l => l.id))), []) : null;
+    renderChart(); renderTips(); renderLevers(); if (state.preview) $('cashflow-block').scrollIntoView?.({ block: 'start' });
+  }
+  else if (ds.preview) {
+    state.tipSel = null;
+    state.preview = state.preview === ds.preview ? null : ds.preview;
+    if (state.preview) { state.effects[state.preview] = effectOf(state.preview, true); state.previewSim = state.effects[state.preview].sim; } else state.previewSim = null;
+    renderChart(); renderTips(); renderLevers(); if (state.preview) $('cashflow-block').scrollIntoView?.({ block: 'start' });
+  }
+  else if (ds.range) { state.weeks = Number(ds.range); state.selected = null; document.querySelectorAll('[data-range]').forEach(b => b.setAttribute('aria-pressed', String(b === t))); renderChart(); }
+  else if (ds.nav) {
+    ['overview', 'assistant'].forEach(id => $(id).classList.toggle('hidden', id !== ds.nav));
+    document.querySelectorAll('.nav [data-nav]').forEach(b => { if (b.dataset.nav === ds.nav) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+    if (ds.nav === 'assistant' && !$('msgs').children.length) greet();
+  }
+  else if (ds.openProject) { openProject(ds.openProject === '1' ? projectCase() : null); }
+  else if (ds.popt) { const s = state.project.opts; s.has(ds.popt) ? s.delete(ds.popt) : s.add(ds.popt); renderProject(); document.querySelector(`[data-popt="${ds.popt}"]`)?.focus(); }
+  else if (ds.advice) { state.project.opts = new Set(['advance', 'guarantee']); renderProject(); }
+});
+
+/* =====================================================================
+   10. ASSISTENT (regelgebaseerd, lokaal — LLM later via eigen backend)
+   ===================================================================== */
+const SUGGESTIONS = ['Kan ik deze werf aan?', 'Kan ik 2 extra metsers aannemen?', 'Wie betaalt er te laat?', 'Is mijn kaskrediet genoeg?'];
+
+function parseAmounts(text) {
+  const out = [];
+  const re = /(\d{1,3}(?:[.\s]\d{3})+|\d+(?:,\d+)?)\s*(k|duizend|miljoen|mio|m\b)?/gi;
+  let m;
+  while ((m = re.exec(text))) {
+    if (text[m.index + m[0].length] === '%') continue;
+    let v = parseFloat(m[1].replace(/[.\s]/g, '').replace(',', '.'));
+    const u = (m[2] || '').toLowerCase();
+    if (u === 'k' || u === 'duizend') v *= 1000;
+    if (u === 'miljoen' || u === 'mio' || u === 'm') v *= 1000000;
+    out.push(v);
+  }
+  return out;
+}
+function miniChart(sim) {
+  const fut = weekly(state.sim, 13);
+  const dashed = weekly(sim, 13).map(p => ({ x: p.x, v: p.p50 }));
+  return `<div class="mini">${pointChart({ future: fut, dashed, xLabel: () => '', W: 300, H: 110, compact: true })}<div class="assume" style="margin-top:4px">Stippellijn: met dit scenario</div></div>`;
+}
+
+function answer(qRaw) {
+  const q = qRaw.toLowerCase();
+  const nums = parseAmounts(q);
+  // --- werf / project ---
+  if (/werf|project|opdracht|offerte|dragen|aan\?|klus/.test(q) && !/metser|werknemer|aannemen van|personeel/.test(q)) {
+    const amount = nums.find(v => v >= 100000) || 1500000;
+    const mm = q.match(/(\d{1,2})\s*maand/);
+    const pc = projectCase(amount, mm ? Math.min(12, Math.max(3, Number(mm[1]))) : 10);
+    state.project.case = pc; state.project.opts = new Set();
+    const base = simulateProject(pc, {}), combo = simulateProject(pc, { advance: true, guarantee: true });
+    const ok = base.low.value >= 0;
+    return `<div class="verdict"><i style="background:${ok ? 'var(--green)' : 'var(--orange)'}"></i>${ok ? 'Ja, dat kan' : 'Ja, maar niet zonder maatregelen'}</div>
+      <p>${eurM(pc.amount)} over ${pc.months} maanden: ${ok ? `geen tekort, laagste punt ${eurK(base.low.value)}.` : `tekort van <b>${approxK(base.low.value, 10000)}</b> in ${monthLong(base.low.day)}. Kosten lopen voor, en in juli is er bouwverlof.`}</p>
+      ${ok ? '' : `<p>Advies: voorschot + bankwaarborg brengt je naar ${eurK(combo.low.value)}. Lening van ${eurK(pc.loan)} als vangnet.</p>`}
+      <p><button class="btn primary" data-open-project="0">Bekijk de analyse</button></p>`;
+  }
+  // --- personeel ---
+  if (/metser|werknemer|arbeider|aanwerv|aannem|personeel|vakman|bediende/.test(q)) {
+    const cm = q.match(/(\d+)\s*(extra\s*)?(metser|werknemer|arbeider|vakm|bediende|man)/);
+    const count = cm ? Math.min(10, Number(cm[1])) : 1;
+    const cost = nums.find(v => v >= 1000 && v < 20000) || 4600;
+    const extra = [];
+    for (let d = 20; d <= HORIZON; d++) if (IS_LAST_WORKDAY[d]) extra.push([d, -cost * count]);
+    const sim = derive(simulate(state.applied, extra), [...state.tipsApplied]);
+    const lowNow = lowest(state.sim.p50, 20, HORIZON), lowNew = lowest(sim.p50, 20, HORIZON), bad = lowest(sim.p10, 20, HORIZON);
+    const color = bad.value < -CREDIT_LINE ? 'var(--red)' : lowNew.value < 0 ? 'var(--orange)' : 'var(--green)';
+    const txt = bad.value < -CREDIT_LINE ? 'Te riskant zo' : lowNew.value < 0 ? 'Kan, maar je gebruikt je kaskrediet' : 'Ja, dat kan';
+    return `<div class="verdict"><i style="background:${color}"></i>${txt}</div>
+      <p>${count} extra ${count > 1 ? 'metsers' : 'metser'}: <b>${eur(cost * count)} per maand</b> vanaf november.</p>
+      <p>Laagste punt vanaf november: ${eurK(lowNew.value)} (nu ${eurK(lowNow.value)}).</p>
+      ${miniChart(sim)}
+      <p class="assume">Aanname: ${eur(cost)} loonkost per persoon, zonder extra omzet.</p>`;
+  }
+  // --- laatbetalers ---
+  if (/laat|laatbetaler|betaalt|dso|klant/.test(q)) {
+    return `<p><b>${LATE_PAYERS[0]}</b> en <b>${LATE_PAYERS[1]}</b>: 30% van je omzet, gemiddeld ${PROFILE.latePayerExtra} dagen te laat.</p>
+      <p>Vaste opvolging maakt ${approxK(5 * DAY_REVENUE)} vrij.</p>
+      <p><button class="btn ghost" data-nav="overview">Bekijk de hefbomen</button></p>`;
+  }
+  // --- kaskrediet / tekort ---
+  if (/krediet|tekort|krap|saldo|risico|genoeg|cash/.test(q)) {
+    const low = lowest(state.sim.p50, 0, HORIZON), worst = lowest(state.sim.p10, 0, HORIZON);
+    return `<p>Laagste punt <b>${eurK(low.value)}</b> op ${longDate(low.day)}, in het slechtste geval ${eurK(worst.value)}.</p>
+      <p>${worst.value > -CREDIT_LINE ? `Dat past in je kaskrediet van ${eurK(CREDIT_LINE)}. Elke euro uit je eigen werking bespaart 7% rente.` : 'Dat gaat voorbij je kaskrediet. Bekijk de hefbomen.'}</p>`;
+  }
+  return `<p>Probeer: "Kan ik deze werf aan?" of "Kan ik 2 extra metsers aannemen?"</p>`;
+}
+
+function addMsg(role, html) { const el = document.createElement('div'); el.className = 'msg ' + role; el.innerHTML = html; $('msgs').appendChild(el); $('msgs').scrollTop = $('msgs').scrollHeight; }
+function ask(text) { const clean = text.trim().slice(0, 300); if (!clean) return; addMsg('user', esc(clean)); setTimeout(() => addMsg('bot', answer(clean)), 250); }
+function greet() { addMsg('bot', '<p>Dag Dirk. Ik ben je CFO in je broekzak. Wat wil je testen?</p>'); }
+$('chips').innerHTML = SUGGESTIONS.map(s => `<button class="chip" data-ask="${esc(s)}">${esc(s)}</button>`).join('');
+$('chips').addEventListener('click', e => { const b = e.target.closest('[data-ask]'); if (b) ask(b.dataset.ask); });
+$('composer').addEventListener('submit', e => { e.preventDefault(); ask($('q').value); $('q').value = ''; });
+$('q').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('composer').requestSubmit(); } });
+
+/* =====================================================================
+   11. START
+   ===================================================================== */
+renderAll();
+setTimeout(showPush, 900);
+</script>
+</body>
+</html>
